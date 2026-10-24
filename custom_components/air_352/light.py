@@ -38,7 +38,10 @@ class Air352LightEntity(LightEntity):
 
     @property
     def available(self):
-        return self._hub.available
+        # 设备关机时灯光命令会被忽略，且关机会把灯光状态重置为开，
+        # 此时上报的 light 值不代表真实可感知状态。
+        # 标记为不可用，提示用户先开机再调灯。
+        return self._hub.available and bool(self._hub.status.get("power"))
 
     async def async_added_to_hass(self):
         self._hub.register_callback(self.async_write_ha_state)
@@ -48,8 +51,8 @@ class Air352LightEntity(LightEntity):
 
     @property
     def is_on(self):
-        if not self._hub.status.get("power"):
-            return False
+        # 直接反映设备上报的 light 字段（0=开 / 0x11=关）。
+        # 不加 power 门控：否则关灯后 UI 会因 power 为假而回弹成“关”。
         return bool(self._hub.status.get("light", False))
 
     async def async_turn_on(self, **kwargs):

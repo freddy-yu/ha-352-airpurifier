@@ -114,10 +114,23 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 ## 实体
 
 - `fan`：主控（开关、风速、预设模式）
-- `light`：屏幕灯
+- `light`：屏幕灯（**仅设备开机时可用**，见下）
 - `sensor.pm25`、`sensor.speed`、`sensor.cumulative_purification`、`sensor.filter_type`
 - X50S 实测没有温湿度/CO₂ 传感器，因此不创建这些实体
 - `sensor.total_purification` 为诊断实体（X50S 上恒为 0）
+
+### 关机状态下的行为
+
+实测 X50S：
+
+- **关机时灯光、模式、风速命令全部被忽略**，设备无任何响应
+- 关机会把灯光状态重置为「开」，此时上报的 `light` 值无参考意义
+
+所以：
+
+- `light` 在设备关机时显示为**不可用**，请先开风扇再调灯
+- 在关机状态调模式或风速，集成会**先发开机命令，等 0.8 秒让设备初始化完成**，
+  再发目标命令（否则紧跟的命令会被开机初始化流程覆盖）
 
 ## 协议
 
@@ -128,13 +141,23 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 可以直接用 `tests/` 下的脚本离线验证：
 
 ```bash
-python tests/test_protocol.py
-python tests/test_hub.py
+python tests/test_protocol.py   # 帧构造/CRC/解析
+python tests/test_hub.py        # 认证码学习/状态合并
+python tests/test_entity.py     # fan/light 实体层命令序列
+```
+
+真机验证（需要设备在网）：
+
+```bash
+python tests/probe_device.py 192.168.0.29   # 只读诊断
+python tests/probe_verify.py                # 逐条命令查询确认
+python tests/test_live_entity.py            # 实体层端到端
 ```
 
 ## 已知限制
 
 - 定时开关机组（`0x0B` / `0x54`）、PTC 在 X50S 上无响应，未做成实体
+- 关机时无法单独控制灯光（设备限制，非集成问题）
 - X60 / X70 / G30 按同族协议实现，未经真机验证
 - 滤芯写入（SN 码）未实现
 
