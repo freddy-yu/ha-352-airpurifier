@@ -3,7 +3,6 @@
 为 **352 X50S** 打造的 Home Assistant 本地局域网集成，无需云端。
 
 > 基于 [yymonday/ha-352-airpurifier](https://github.com/yymonday/ha-352-airpurifier)（作者 [@yymonday](https://github.com/yymonday)）。
-> 原始协议逆向与 X83/X50 支持归原作者。本 fork 由 [@freddy-yu](https://github.com/freddy-yu) 维护，
 > 新增功能均在真实 X50S 上逐项验证。
 
 ## 功能
