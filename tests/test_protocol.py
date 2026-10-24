@@ -7,7 +7,7 @@ import sys
 import types
 from pathlib import Path
 
-COMP_DIR = Path(__file__).resolve().parents[1] / "custom_components" / "air_352"
+COMP_DIR = Path(__file__).resolve().parents[1] / "custom_components" / "air_352_x50s"
 
 # 用假包让 const.py 里的相对导入生效
 pkg = types.ModuleType("air352")

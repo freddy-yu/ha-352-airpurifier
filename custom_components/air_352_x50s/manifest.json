@@ -1,7 +1,7 @@
 {
-  "domain": "air_352",
-  "name": "352 Air Purifier",
-  "version": "1.2.1",
+  "domain": "air_352_x50s",
+  "name": "352 X50S Air Purifier",
+  "version": "1.3.0",
   "documentation": "https://github.com/freddy-yu/ha-352-airpurifier",
   "issue_tracker": "https://github.com/freddy-yu/ha-352-airpurifier/issues",
   "dependencies": [],

@@ -1,8 +1,12 @@
-# 352 Air Purifier for Home Assistant
+# 352 X50S Air Purifier for Home Assistant
 
-为 352 品牌空气净化器打造的 Home Assistant 局域网集成。
+为 **352 X50S 空气净化器**打造的 Home Assistant 局域网集成，
+同时保留对上游已支持型号（X83 / X50 等）的兼容。
 
 **脱离云端，完全本地 UDP 控制。**
+
+> 本 fork 的新增功能（`F0 72` 协议、模式/档位 select、状态处理修复）
+> 均在真实 X50S 上逐项验证。其他型号沿用上游实现，**未经真机验证**。
 
 > **本仓库是 fork，基于 [`yymonday/ha-352-airpurifier`](https://github.com/yymonday/ha-352-airpurifier)。**
 > 原始协议逆向、X83/X50 的 `A5 A0` 实现均来自原作者 **[@yymonday](https://github.com/yymonday)**，
@@ -17,7 +21,10 @@
 >    - 只发广播发现设备，而 X50S 不回应广播（改为广播+单播双发）
 >    - 手动模式用错取值（`0x05` → `0x04`）
 > 4. **X50S 真机验证**：开关机、风速 1–5、模式、灯光、童锁全部实测通过。
-> 5. **包名从 `air_352_x83` 改为 `air_352`** —— 原名字带型号后缀，容易误导（本集成支持多型号）。
+> 5. **包名改为 `air_352_x50s`**（上游叫 `air_352_x83`）——
+>    本 fork 新增的 `F0 72` 协议层、模式/档位 select、状态锁定修复等
+>    都是针对 X50S 实测调优的，其他型号未经真机验证，
+>    用带型号的名字比笼统的 `air_352` 更诚实。
 > 6. 新增离线测试套件（`tests/`）和只读局域网诊断脚本。
 > 7. 补充 `F0FE6B*` 的 DHCP 自动发现前缀（实测 X50S 的 MAC 前缀）。
 > 8. **新增 `select` 实体选运行模式** —— HA 风扇卡片默认不显示模式下拉框，
@@ -30,9 +37,9 @@
 
 | 型号 | 协议 | 验证状态 |
 |---|---|---|
-| 352 X50S | `F0 72` 帧 | **已真机验证** |
-| 352 X50（老固件） | `A5 A0` 帧 | 沿用原实现，未实测 |
-| 352 X83 / X83C | `A5 A0` 帧 | 沿用原实现，未实测 |
+| **352 X50S** | `F0 72` 帧 | **已真机逐项验证** ← 本 fork 主要目标 |
+| 352 X50（老固件） | `A5 A0` 帧 | 沿用上游实现，未实测 |
+| 352 X83 / X83C | `A5 A0` 帧 | 沿用上游实现，未实测 |
 | 352 X60 / X70 / G30 | `F0 72` 帧 | 按同族实现，未实测 |
 
 X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层帧格式：
@@ -68,25 +75,26 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 1. 打开 Home Assistant，进入 HACS
 2. 右上角 `...` → **自定义存储库 (Custom repositories)**
 3. 仓库 URL 填 `https://github.com/freddy-yu/ha-352-airpurifier`，类别选 **集成 (Integration)**
-4. 在 HACS 中搜索 `352 Air Purifier` 并下载安装
+4. 在 HACS 中搜索 `352 X50S 空气净化器` 并下载安装
 5. 重启 Home Assistant
 
 ### 手动安装
 
-把 `custom_components/air_352` 整个文件夹复制到你的 HA 配置目录下的
+把 `custom_components/air_352_x50s` 整个文件夹复制到你的 HA 配置目录下的
 `custom_components/` 中，然后重启。
 
 > **从旧版本升级（包名变更）**
 >
-> 本 fork 早期版本和上游都叫 `custom_components/air_352_x83`。
-> 如果你装过那些版本，升级时需要：
+> 本集成改名过两次：上游叫 `air_352_x83`，本 fork 曾在 `air_352`，
+> 现为 `air_352_x50s`。升级时请根据你当前装的目录处理：
 >
 > 1. 删除 HA 配置里的旧集成条目
-> 2. 删除 `custom_components/air_352_x83` 目录（否则会两个集成共存）
-> 3. 放入新的 `custom_components/air_352`，重启 HA
+> 2. 删除旧目录（`custom_components/air_352_x83` 或 `custom_components/air_352`）
+> 3. 放入新的 `custom_components/air_352_x50s`，重启 HA
 > 4. 重新添加集成（实体 unique_id 不变，但设备卡会重建）
 >
-> 不删旧目录会导致 domain 冲突，HA 启动时可能报错。
+> 不删旧目录会导致多个 domain 同时存在，HA 启动时可能报错。
+> 只留 `air_352_x50s` 一个即可。
 
 ## 配置
 
@@ -173,7 +181,7 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 协议细节（帧结构、CRC 算法、状态字段偏移、命令码表）见
 [`docs/X50S-协议逆向笔记.md`](docs/X50S-协议逆向笔记.md)。
 
-实现代码在 `custom_components/air_352/protocol.py`，纯 Python 无 HA 依赖，
+实现代码在 `custom_components/air_352_x50s/protocol.py`，纯 Python 无 HA 依赖，
 可以直接用 `tests/` 下的脚本离线验证：
 
 ```bash

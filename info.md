@@ -1,10 +1,11 @@
-# 352 Air Purifier for Home Assistant
+# 352 X50S Air Purifier for Home Assistant
 
-![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
 ![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg)
 ![IoT Class](https://img.shields.io/badge/IoT_Class-Local_Push-success.svg)
 
-专为 352 品牌智能空气净化器打造的 Home Assistant 局域网本地集成插件。
+专为 **352 X50S 空气净化器**打造的 Home Assistant 局域网集成，
+同时保留对上游已支持型号（X83 / X50 等）的兼容。
 **脱离云端，毫秒级响应，完全本地局域网 UDP 控制！**
 
 > **本仓库是 fork**，基于 [`yymonday/ha-352-airpurifier`](https://github.com/yymonday/ha-352-airpurifier)
@@ -13,7 +14,8 @@
 > 本 fork（[@freddy-yu](https://github.com/freddy-yu)）新增：
 > `F0 72` 协议层、双协议通信、认证码自动学习、X50S 真机验证，
 > 并修复了广播发现、状态锁定、手动模式取值三个问题。
-> 包名由 `air_352_x83` 改为 `air_352`（不再带型号后缀）。
+> 包名改为 `air_352_x50s`（上游叫 `air_352_x83`）——
+> 新增功能均为 X50S 实测调优，带型号的名字比笼统的 `air_352` 更诚实。
 
 ## ✨ 支持的型号 (Supported Models)
 
@@ -60,7 +62,7 @@
 ### 手动安装
 
 1. 下载本仓库代码
-2. 把 `custom_components/air_352` 文件夹放入 HA 根目录的 `custom_components` 中
+2. 把 `custom_components/air_352_x50s` 文件夹放入 HA 根目录的 `custom_components` 中
 3. 重启 Home Assistant
 
 > **从旧版升级**：本 fork 早期版本与上游都叫 `air_352_x83`。
