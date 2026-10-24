@@ -111,6 +111,15 @@ class RecordingHub:
         self.status["mode"] = mode
         return True
 
+    async def async_set_speed(self, speed):
+        if not self.status.get("power"):
+            self.calls.append("on")
+            self.status["power"] = True
+        speed = max(1, min(self.speed_count, int(speed)))
+        self.calls.append(f"speed_{speed}")
+        self.status["speed"] = speed
+        return True
+
     def register_callback(self, cb):
         pass
 
@@ -151,6 +160,47 @@ async def main():
     hub4.status["mode"] = "mode4"
     sel4 = selectmod.Air352ModeSelect(hub4)
     check("未知模式不显示", sel4.current_option, None)
+
+    print("\n=== 风速档位 Select: 选项与当前值 ===")
+    hub5 = RecordingHub(power=True)
+    hub5.status["speed"] = 3
+    spd = selectmod.Air352SpeedSelect(hub5)
+    check("选项为 1-5", spd._attr_options, ["1", "2", "3", "4", "5"])
+    check("当前档位", spd.current_option, "3")
+    check("翻译键", spd._attr_translation_key, "speed")
+
+    print("\n=== 风速档位 Select: 选 4 档 ===")
+    await spd.async_select_option("4")
+    print(f"   命令: {hub5.calls}")
+    check("发了 speed_4", hub5.calls, ["speed_4"])
+    check("当前值已更新", spd.current_option, "4")
+
+    print("\n=== 风速档位 Select: 关机状态选 2 档 ===")
+    hub6 = RecordingHub(power=False)
+    spd2 = selectmod.Air352SpeedSelect(hub6)
+    await spd2.async_select_option("2")
+    print(f"   命令: {hub6.calls}")
+    check("先开机再设档", hub6.calls, ["on", "speed_2"])
+
+    print("\n=== 风速档位 Select: 超范围选项被拒绝 ===")
+    hub7 = RecordingHub(power=True)
+    spd3 = selectmod.Air352SpeedSelect(hub7)
+    await spd3.async_select_option("9")
+    check("超范围不发命令", hub7.calls, [])
+    await spd3.async_select_option("abc")
+    check("非数字不发命令", hub7.calls, [])
+
+    print("\n=== 风速档位 Select: 极速模式(6档)返回 None ===")
+    hub8 = RecordingHub(power=True)
+    hub8.status["speed"] = 6
+    spd4 = selectmod.Air352SpeedSelect(hub8)
+    check("6 档不在选项内 -> None", spd4.current_option, None)
+
+    print("\n=== 风速档位 Select: X83 六档机型 ===")
+    hub9 = RecordingHub(power=True)
+    hub9.speed_count = 6
+    spd5 = selectmod.Air352SpeedSelect(hub9)
+    check("X83 选项 1-6", spd5._attr_options, ["1", "2", "3", "4", "5", "6"])
 
     print("\n=== Hub: async_set_mode 真实实现 ===")
     class FakeHub(hubmod.Air352Hub):

@@ -22,6 +22,7 @@
 > 7. 补充 `F0FE6B*` 的 DHCP 自动发现前缀（实测 X50S 的 MAC 前缀）。
 > 8. **新增 `select` 实体选运行模式** —— HA 风扇卡片默认不显示模式下拉框，
 >    单靠 `preset_mode` 容易让人误以为不支持模式。
+> 9. **新增 `select` 实体选风速档位** —— 同理，卡片默认不显示风速滑块。
 >
 > 变更细节见 [`docs/X50S-协议逆向笔记.md`](docs/X50S-协议逆向笔记.md) 第 12 节「实机验证记录」。
 
@@ -116,23 +117,42 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 ## 实体
 
 - `fan`：主控（开关、风速、预设模式）
-- `select`：**运行模式选择**（自动/睡眠/极速/手动）—— 推荐用这个选模式
+- `select.运行模式`：**自动 / 睡眠 / 极速 / 手动**
+- `select.风速档位`：**1–5 档**（手动模式下用它调档）
 - `light`：屏幕灯（**仅设备开机时可用**，见下）
 - `sensor.pm25`、`sensor.speed`、`sensor.cumulative_purification`、`sensor.filter_type`
 - X50S 实测没有温湿度/CO₂ 传感器，因此不创建这些实体
 - `sensor.total_purification` 为诊断实体（X50S 上恒为 0）
 
+### 关于风速档位（重要）
+
+`sensor.speed` 和 `select.风速档位` 显示的是**设备当前实际风速**，不是「设定值」。
+实测 X50S 的行为：
+
+- **自动模式**：档位由设备根据空气质量自己调，空气好时常年停在 1 档
+- **睡眠模式**：固定最低档（1 档）
+- **极速模式**：设备跑到 **6 档**（超出常规 1–5 档，此时 `select` 显示未知，属正常）
+- **手动模式**：才是你选的档位，1–5 都能精确生效
+
+所以「不管什么模式档位都是 1」不是 bug：
+如果你在自动或睡眠模式，设备本来就只跑 1 档。
+**要手动调速：先选「手动」模式，再用「风速档位」调。**
+
+> 设备没有区分「设定档位」和「实际档位」，只上报一个值，
+> 所以自动模式下调档位会被设备的自动策略覆盖——这是设备设计。
+
 ### 为什么另外提供 select 实体？
 
-`fan` 实体本身支持 `preset_mode`（自动/睡眠/极速/手动），这是标准做法。
-但 Home Assistant 的**风扇卡片（tile card）默认不渲染模式下拉框**，
-需要在卡片上手动添加「Preset modes」功能才看得到，很容易让人误以为不支持模式。
+`fan` 实体本身支持 `preset_mode` 和 `percentage`，这是标准做法。
+但 Home Assistant 的**风扇卡片（tile card）默认既不渲染模式下拉框，
+也不渲染风速滑块**，需要在卡片上手动添加功能才看得到，
+很容易让人误以为不支持。
 
-所以额外提供一个 `select` 实体，名为「运行模式」：任何卡片、自动化、
-语音助手都能直接选用。两个入口共享同一状态，用哪个都行。
+所以额外提供 `运行模式` 和 `风速档位` 两个 `select` 实体：
+任何卡片、自动化、语音助手都能直接选用。三个入口共享同一状态。
 
-> 如果你更想用风扇卡片上的模式下拉框：编辑卡片 → 添加功能 →
-> 选「Preset modes」（预设模式）即可。
+> 如果你更想用风扇卡片：编辑卡片 → 添加功能 →
+> 选「Preset modes」（预设模式）和「Speed」（风速）即可。
 
 ### 关机状态下的行为
 
@@ -160,7 +180,8 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 python tests/test_protocol.py   # 帧构造/CRC/解析
 python tests/test_hub.py        # 认证码学习/状态合并
 python tests/test_entity.py     # fan/light 实体层命令序列
-python tests/test_select.py     # select 实体 + hub 模式/风速接口
+python tests/test_select.py     # 模式/档位 select 实体 + hub 接口
+python tests/test_sensor.py     # sensor 实体取值
 ```
 
 真机验证（需要设备在网）：
@@ -169,7 +190,7 @@ python tests/test_select.py     # select 实体 + hub 模式/风速接口
 python tests/probe_device.py 192.168.0.29   # 只读诊断
 python tests/probe_verify.py                # 逐条命令查询确认
 python tests/test_live_entity.py            # 实体层端到端
-python tests/test_live_select.py            # 模式选择端到端
+python tests/test_live_select.py            # 模式/档位选择端到端
 ```
 
 ## 已知限制

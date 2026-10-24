@@ -127,6 +127,7 @@ def main():
 
     fan = fanmod.Air352FanEntity(hub)
     sel = selectmod.Air352ModeSelect(hub)
+    spd = selectmod.Air352SpeedSelect(hub)
 
     async def confirm(pred=None, timeout=8.0):
         before = seen[0]
@@ -188,6 +189,32 @@ def main():
         print("\n=== 6. fan 的 preset_mode 与 select 一致 ===")
         print(f"   fan.preset_mode={fan.preset_mode} select={sel.current_option}")
         check("fan 模式与 select 一致", fan.preset_mode, sel.current_option)
+
+        print("\n=== 7. 风速档位 select 逐档设置 ===")
+        print(f"   选项: {spd._attr_options}")
+        for gear in (1, 2, 3, 4, 5):
+            await spd.async_select_option(str(gear))
+            await confirm(lambda s, g=gear: s["speed"] == g, 8)
+            print(
+                f"   选 {gear} 档 -> 上报 speed={hub.status['speed']} "
+                f"select={spd.current_option} sensor={hub.status['speed']}"
+            )
+            check(f"{gear} 档生效", hub.status["speed"], gear)
+            check(f"{gear} 档 select 同步", spd.current_option, str(gear))
+
+        print("\n=== 8. 档位 select 与 fan.percentage 一致 ===")
+        await spd.async_select_option("3")
+        await confirm(lambda s: s["speed"] == 3, 8)
+        print(f"   speed=3 -> fan.percentage={fan.percentage}")
+        check("fan.percentage 对应 60%", fan.percentage, 60)
+
+        print("\n=== 9. 自动模式下档位由设备决定 ===")
+        await sel.async_select_option("auto")
+        await confirm(lambda s: s["mode"] == "auto", 8)
+        await asyncio.sleep(2)
+        st = await confirm()
+        print(f"   自动模式: speed={st['speed']} select={spd.current_option}")
+        check("自动模式有合法档位值", st["speed"] in range(1, 7), True)
 
         print("\n=== 恢复 ===")
         await hub.async_control("auto")
