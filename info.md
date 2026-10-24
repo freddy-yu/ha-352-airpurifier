@@ -7,6 +7,14 @@
 专为 352 品牌智能空气净化器打造的 Home Assistant 局域网本地集成插件。
 **脱离云端，毫秒级响应，完全本地局域网 UDP 控制！**
 
+> **本仓库是 fork**，基于 [`yymonday/ha-352-airpurifier`](https://github.com/yymonday/ha-352-airpurifier)
+> （作者 [@yymonday](https://github.com/yymonday)）。原始协议逆向成果归原作者所有。
+>
+> 本 fork（[@freddy-yu](https://github.com/freddy-yu)）新增：
+> `F0 72` 协议层、双协议通信、认证码自动学习、X50S 真机验证，
+> 并修复了广播发现、状态锁定、手动模式取值三个问题。
+> 包名由 `air_352_x83` 改为 `air_352`（不再带型号后缀）。
+
 ## ✨ 支持的型号 (Supported Models)
 
 - **352 X50S** — `F0 72` 帧，**已真机验证**（开关机/风速/模式/灯光/童锁全生效）
@@ -52,8 +60,11 @@
 ### 手动安装
 
 1. 下载本仓库代码
-2. 把 `custom_components/air_352_x83` 文件夹放入 HA 根目录的 `custom_components` 中
+2. 把 `custom_components/air_352` 文件夹放入 HA 根目录的 `custom_components` 中
 3. 重启 Home Assistant
+
+> **从旧版升级**：本 fork 早期版本与上游都叫 `air_352_x83`。
+> 升级前请先删除旧集成条目和旧目录，否则两个 domain 会冲突。
 
 ## ⚙️ 配置使用 (Configuration)
 
@@ -85,10 +96,13 @@ python tests/test_hub.py
 ## 📝 已知限制
 
 - X60 / X70 / G30 按同族协议实现，未经真机验证
-- 定时开关机组、童锁、PTC 命令已定义但尚未做成实体
+- 定时开关机组、PTC 命令已定义但尚未做成实体
 - 滤芯写入（SN 码）未实现
 
 ## 📬 贡献与支持
 
 本项目基于对 352 官方 App 的逆向分析开发。
 如果你有其他型号设备（如 G30 新风、净水器等），欢迎提交 Issue 或 PR 共同完善！
+
+- **原始项目**：https://github.com/yymonday/ha-352-airpurifier
+- **本 fork**：https://github.com/freddy-yu/ha-352-airpurifier

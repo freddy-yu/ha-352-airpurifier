@@ -2,7 +2,7 @@
 
 from .protocol import PROTOCOL_A5A0, PROTOCOL_F072
 
-DOMAIN = "air_352_x83"
+DOMAIN = "air_352"
 NAME = "352 Air Purifier"
 
 UDP_PORT = 11530

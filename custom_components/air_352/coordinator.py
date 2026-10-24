@@ -26,7 +26,3 @@ class Air352UpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         await self.hub.async_query()
         return self.hub.status
-
-
-# 兼容旧名字
-X83UpdateCoordinator = Air352UpdateCoordinator

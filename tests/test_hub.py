@@ -7,7 +7,7 @@ import sys
 import types
 from pathlib import Path
 
-COMP_DIR = Path(__file__).resolve().parents[1] / "custom_components" / "air_352_x83"
+COMP_DIR = Path(__file__).resolve().parents[1] / "custom_components" / "air_352"
 
 pkg = types.ModuleType("air352")
 pkg.__path__ = [str(COMP_DIR)]

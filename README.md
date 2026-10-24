@@ -4,6 +4,25 @@
 
 **脱离云端，完全本地 UDP 控制。**
 
+> **本仓库是 fork，基于 [`yymonday/ha-352-airpurifier`](https://github.com/yymonday/ha-352-airpurifier)。**
+> 原始协议逆向、X83/X50 的 `A5 A0` 实现均来自原作者 **[@yymonday](https://github.com/yymonday)**，
+> 在此表示感谢。
+>
+> 本 fork（**[@freddy-yu](https://github.com/freddy-yu)**）的改动：
+>
+> 1. **新增 `F0 72` 协议层**（`protocol.py`）：CRC16、新帧构造/解析、状态字段映射。
+> 2. **重写通信层**：按型号双协议发送、认证码自动学习、设备上报即真相。
+> 3. **修复原实现的三个问题**：
+>    - 命令后 3 秒锁状态会永久丢弃设备真实的关机/调速回帧
+>    - 只发广播发现设备，而 X50S 不回应广播（改为广播+单播双发）
+>    - 手动模式用错取值（`0x05` → `0x04`）
+> 4. **X50S 真机验证**：开关机、风速 1–5、模式、灯光、童锁全部实测通过。
+> 5. **包名从 `air_352_x83` 改为 `air_352`** —— 原名字带型号后缀，容易误导（本集成支持多型号）。
+> 6. 新增离线测试套件（`tests/`）和只读局域网诊断脚本。
+> 7. 补充 `F0FE6B*` 的 DHCP 自动发现前缀（实测 X50S 的 MAC 前缀）。
+>
+> 变更细节见 [`docs/X50S-协议逆向笔记.md`](docs/X50S-协议逆向笔记.md) 第 12 节「实机验证记录」。
+
 ## 支持的型号
 
 | 型号 | 协议 | 验证状态 |
@@ -51,8 +70,20 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 
 ### 手动安装
 
-把 `custom_components/air_352_x83` 整个文件夹复制到你的 HA 配置目录下的
+把 `custom_components/air_352` 整个文件夹复制到你的 HA 配置目录下的
 `custom_components/` 中，然后重启。
+
+> **从旧版本升级（包名变更）**
+>
+> 本 fork 早期版本和上游都叫 `custom_components/air_352_x83`。
+> 如果你装过那些版本，升级时需要：
+>
+> 1. 删除 HA 配置里的旧集成条目
+> 2. 删除 `custom_components/air_352_x83` 目录（否则会两个集成共存）
+> 3. 放入新的 `custom_components/air_352`，重启 HA
+> 4. 重新添加集成（实体 unique_id 不变，但设备卡会重建）
+>
+> 不删旧目录会导致 domain 冲突，HA 启动时可能报错。
 
 ## 配置
 
@@ -91,9 +122,9 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 ## 协议
 
 协议细节（帧结构、CRC 算法、状态字段偏移、命令码表）见
-[`X50S-协议逆向笔记.md`](../352-apk/X50S-协议逆向笔记.md)。
+[`docs/X50S-协议逆向笔记.md`](docs/X50S-协议逆向笔记.md)。
 
-实现代码在 `custom_components/air_352_x83/protocol.py`，纯 Python 无 HA 依赖，
+实现代码在 `custom_components/air_352/protocol.py`，纯 Python 无 HA 依赖，
 可以直接用 `tests/` 下的脚本离线验证：
 
 ```bash
@@ -112,5 +143,8 @@ python tests/test_hub.py
 本项目基于对 352 官方 App 的逆向分析开发。
 如果你有其他型号设备，欢迎提 Issue 或 PR 补充协议差异。
 
-本仓库是 [yymonday/ha-352-airpurifier](https://github.com/yymonday/ha-352-airpurifier)
-的 fork，新增了 X50S 的 `F0 72` 协议支持与真机验证。
+- **原始项目**：[`yymonday/ha-352-airpurifier`](https://github.com/yymonday/ha-352-airpurifier)（作者 [@yymonday](https://github.com/yymonday)）
+- **本 fork**：[`freddy-yu/ha-352-airpurifier`](https://github.com/freddy-yu/ha-352-airpurifier)
+
+若协议改进对上游也有价值，欢迎向上游提 PR；提之前请把
+`manifest.json` 的 `codeowners` / `documentation` / `issue_tracker` 改回上游地址。
