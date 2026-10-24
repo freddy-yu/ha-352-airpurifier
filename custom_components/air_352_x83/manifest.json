@@ -2,16 +2,19 @@
   "domain": "air_352_x83",
   "name": "352 Air Purifier",
   "version": "1.1.0",
-  "documentation": "https://github.com/aexyun/ha-352-airpurifier",
-  "issue_tracker": "https://github.com/aexyun/ha-352-airpurifier/issues",
+  "documentation": "https://github.com/freddy-yu/ha-352-airpurifier",
+  "issue_tracker": "https://github.com/freddy-yu/ha-352-airpurifier/issues",
   "dependencies": [],
-  "codeowners": ["@aexyun"],
+  "codeowners": ["@freddy-yu"],
   "config_flow": true,
   "iot_class": "local_push",
   "dhcp": [
     {
       "hostname": "352air*",
       "macaddress": "009569*"
+    },
+    {
+      "macaddress": "F0FE6B*"
     }
   ]
 }

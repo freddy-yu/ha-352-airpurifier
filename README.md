@@ -45,7 +45,7 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 
 1. 打开 Home Assistant，进入 HACS
 2. 右上角 `...` → **自定义存储库 (Custom repositories)**
-3. 仓库 URL 填 `https://github.com/aexyun/ha-352-airpurifier`，类别选 **集成 (Integration)**
+3. 仓库 URL 填 `https://github.com/freddy-yu/ha-352-airpurifier`，类别选 **集成 (Integration)**
 4. 在 HACS 中搜索 `352 Air Purifier` 并下载安装
 5. 重启 Home Assistant
 
@@ -111,3 +111,6 @@ python tests/test_hub.py
 
 本项目基于对 352 官方 App 的逆向分析开发。
 如果你有其他型号设备，欢迎提 Issue 或 PR 补充协议差异。
+
+本仓库是 [yymonday/ha-352-airpurifier](https://github.com/yymonday/ha-352-airpurifier)
+的 fork，新增了 X50S 的 `F0 72` 协议支持与真机验证。
