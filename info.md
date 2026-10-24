@@ -1,110 +1,89 @@
 # 352 X50S Air Purifier for Home Assistant
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
-![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg)
-![IoT Class](https://img.shields.io/badge/IoT_Class-Local_Push-success.svg)
+为 **352 X50S** 打造的 Home Assistant 本地局域网集成，无需云端，UDP 直连。
 
-专为 **352 X50S 空气净化器**打造的 Home Assistant 局域网集成，
-同时保留对上游已支持型号（X83 / X50 等）的兼容。
-**脱离云端，毫秒级响应，完全本地局域网 UDP 控制！**
+> 基于 [yymonday/ha-352-airpurifier](https://github.com/yymonday/ha-352-airpurifier)（作者 [@yymonday](https://github.com/yymonday)）。
+> 原始协议逆向与 X83/X50 支持归原作者。本 fork 由 [@freddy-yu](https://github.com/freddy-yu) 维护，
+> 新增功能均在真实 X50S 上验证。包名 `air_352_x50s`（上游为 `air_352_x83`）。
 
-> **本仓库是 fork**，基于 [`yymonday/ha-352-airpurifier`](https://github.com/yymonday/ha-352-airpurifier)
-> （作者 [@yymonday](https://github.com/yymonday)）。原始协议逆向成果归原作者所有。
->
-> 本 fork（[@freddy-yu](https://github.com/freddy-yu)）新增：
-> `F0 72` 协议层、双协议通信、认证码自动学习、X50S 真机验证，
-> 并修复了广播发现、状态锁定、手动模式取值三个问题。
-> 包名改为 `air_352_x50s`（上游叫 `air_352_x83`）——
-> 新增功能均为 X50S 实测调优，带型号的名字比笼统的 `air_352` 更诚实。
+## 功能
 
-## ✨ 支持的型号 (Supported Models)
+- 开关机
+- 四种运行模式：自动 / 睡眠 / 极速 / 手动
+- 风速 1–5 档
+- 屏幕灯开关
+- 童锁开关
+- 传感器：PM2.5、当前风速、累计净化量、滤芯状态
+- 状态变化主动推送
 
-- **352 X50S** — `F0 72` 帧，**已真机验证**（开关机/风速/模式/灯光/童锁全生效）
-- 352 X83 / X83C — `A5 A0` 帧，沿用原实现
-- 352 X50（老固件）— `A5 A0` 帧，沿用原实现
-- 352 X60 / X70 / G30 — 与 X50S 同族，未经实测
+## 相对上游的改动
 
-> X50 与 X50S 协议层设备类型相同（`0x03`），差别在内层帧：
-> 老固件 `A5 A0` + 单字节累加和，新固件 `F0 72` + CRC16。
-> **X50 控制无反应时请改选 X50S。**
+- 新增 `F0 72` 协议层（CRC16 新帧格式），上游只有老式 `A5 A0`
+- 双协议按型号自动选择
+- 认证码自动学习，无需手填
+- 修复：命令后锁状态会丢弃设备真实的关机/调速回帧
+- 修复：X50S 不回应广播，改为广播 + 单播双发
+- 修复：手动模式取值应为 `0x04`（`0x05` 无响应）
+- 新增模式 / 档位 `select` 实体（风扇卡片默认不显示下拉框和滑块）
 
-### X50S 实测要点
+## 支持型号
 
-- ✅ 开关机、风速 1–5 档、模式、灯光、童锁 全部生效
-- ✅ 认证码自动学习有效
-- ⚠️ 设备**不回应 IPv4 广播，只回应单播**（集成已双发）
-- ⚠️ 定时命令 `0x54` 无响应，X50S 不支持
-- ⚠️ 无温湿度/CO₂ 传感器（上报恒为 0）
-- ℹ️ 手动模式为 `raw=4`；极速模式会跑到 6 档（超出 5 档属正常）
+| 型号 | 协议 | 状态 |
+|---|---|---|
+| **352 X50S** | `F0 72` | **已真机验证** |
+| 352 X50 / X83 / X83C | `A5 A0` | 沿用上游，未实测 |
+| 352 X60 / X70 / G30 | `F0 72` | 按同族实现，未实测 |
 
-## 🚀 核心特性 (Features)
+## 安装
 
-- ⚡ **完全本地化**：不依赖 352 官方云服务器，断网依然可用
-- 🔄 **状态即时同步**：UDP 直连，设备状态变化主动推送
-- 🛡️ **命令不乐观锁**：设备上报即真相，避免状态永久错误
-- 🌬️ **风机控制**：开关机、1–5 档风速调节（X50S）
-- 🎛️ **模式切换**：自动 / 睡眠 / 极速 / 手动
-- 💡 **灯光控制**：屏幕灯光开关
-- 📊 **传感器**：PM2.5、累计净化量、滤芯状态
-- 🔑 **认证码自动学习**：从设备回帧包头提取，无需手工填写
+**HACS**：自定义存储库添加 `https://github.com/freddy-yu/ha-352-airpurifier`，
+类别选「集成」，搜索 `352 X50S` 安装，重启 HA。
 
-## 📦 安装方法 (Installation)
+**手动**：把 `custom_components/air_352_x50s` 复制到 HA 配置目录的 `custom_components/` 下，重启。
 
-### 推荐方法：通过 HACS 安装
+> 升级注意：删掉旧集成条目和旧目录（`air_352_x83` 或 `air_352`），
+> 只保留 `air_352_x50s`，否则 domain 冲突。
 
-1. 打开 Home Assistant，进入 HACS
-2. 点击右上角的三个点 `...` → **自定义存储库 (Custom repositories)**
-3. 存储库 URL 填入：`https://github.com/freddy-yu/ha-352-airpurifier`
-4. 类别选择：**集成 (Integration)**
-5. 点击添加后，在 HACS 中搜索 `352 Air Purifier` 并下载安装
-6. 重启 Home Assistant
+## 配置
 
-### 手动安装
+设置 → 设备与服务 → 添加集成 → 搜索 `352`：
 
-1. 下载本仓库代码
-2. 把 `custom_components/air_352_x50s` 文件夹放入 HA 根目录的 `custom_components` 中
-3. 重启 Home Assistant
+- 型号：X50S
+- IP 地址：设备局域网 IP
+- MAC 地址：如 `F0:FE:6B:93:88:FF`
+- 认证码：可留空，自动学习
 
-> **从旧版升级**：本 fork 早期版本与上游都叫 `air_352_x83`。
-> 升级前请先删除旧集成条目和旧目录，否则两个 domain 会冲突。
+## 使用说明
 
-## ⚙️ 配置使用 (Configuration)
+**模式与档位**用 `select.运行模式` 和 `select.风速档位`。也可以编辑风扇卡片 →
+添加功能 → 勾选「Preset modes」和「Speed」。
 
-1. 在 HA 左侧菜单点击 **配置** → **设备与服务**
-2. 点击右下角 **添加集成**，搜索 `352`
-3. 在弹出配置框中输入：
+**档位由谁决定**：设备只上报当前风速。自动模式按空气质量自己调（常停在 1 档），
+睡眠固定 1 档，极速跑到 6 档，只有手动模式才是你设定的档位。
 
-   - **型号**：X50S 请选择 `352 X50S 空气净化器`
-   - **设备 IP**：净化器在局域网内的 IP（建议绑定静态 IP）
-   - **MAC 地址**：设备 MAC，格式如 `00:95:69:D7:9B:FE`
-   - **认证码**（可选）：形如 `22B5` 的十六进制值，留空则自动学习
+**累计净化量**：设备运行时才增长（约 200–300 m³/h）。基数几十万，
+短时间内看不出变化属正常。
 
-4. 提交后即可自动生成风机、屏幕灯和多个传感器实体
+**关机时**：灯光命令被忽略，灯实体显示不可用。模式和档位命令会自动先开机再执行。
 
-### 端口说明
+**端口**：监听 UDP `11530`，被 352 App 占用时自动降级到临时端口。
 
-集成会尝试监听 UDP `11530`。若该端口被 352 官方 App 占用会自动改用临时端口，
-此时设备应答仍可收到，但主动广播可能丢失。建议关闭手机上的 352 App 后重启集成。
+## 已知限制
 
-## 🧪 离线验证
+- 定时开关机、PTC 在 X50S 上无响应，未实现
+- 滤芯 SN 写入未实现
+- X60 / X70 / G30 / X83 未经真机验证
 
-`protocol.py` 是纯 Python、不依赖 HA，可直接跑自测：
+## 开发
+
+`protocol.py` 纯 Python 无 HA 依赖，可离线验证：
 
 ```bash
 python tests/test_protocol.py
 python tests/test_hub.py
+python tests/test_entity.py
+python tests/test_select.py
+python tests/test_sensor.py
 ```
 
-## 📝 已知限制
-
-- X60 / X70 / G30 按同族协议实现，未经真机验证
-- 定时开关机组、PTC 命令已定义但尚未做成实体
-- 滤芯写入（SN 码）未实现
-
-## 📬 贡献与支持
-
-本项目基于对 352 官方 App 的逆向分析开发。
-如果你有其他型号设备（如 G30 新风、净水器等），欢迎提交 Issue 或 PR 共同完善！
-
-- **原始项目**：https://github.com/yymonday/ha-352-airpurifier
-- **本 fork**：https://github.com/freddy-yu/ha-352-airpurifier
+协议细节见 [`docs/X50S-协议逆向笔记.md`](docs/X50S-协议逆向笔记.md)。
