@@ -1,0 +1,15 @@
+{
+  "entity": {
+    "select": {
+      "mode": {
+        "name": "运行模式",
+        "state": {
+          "auto": "自动",
+          "sleep": "睡眠",
+          "turbo": "极速",
+          "manual": "手动"
+        }
+      }
+    }
+  }
+}

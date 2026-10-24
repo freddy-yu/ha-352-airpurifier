@@ -1,0 +1,15 @@
+{
+  "entity": {
+    "select": {
+      "mode": {
+        "name": "Mode",
+        "state": {
+          "auto": "Auto",
+          "sleep": "Sleep",
+          "turbo": "Turbo",
+          "manual": "Manual"
+        }
+      }
+    }
+  }
+}

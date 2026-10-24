@@ -12,6 +12,8 @@ from .const import (
     APP_AUTH_CODE,
     COMPANY_CODE_LRD,
     DEFAULT_DEVICE_AUTH,
+    POWER_ON_SETTLE,
+    PRESET_MODES,
     UDP_PORT,
     commands_for,
     model_info,
@@ -142,6 +144,42 @@ class Air352Hub:
 
     # 兼容旧接口名
     async_send_command = async_control
+
+    async def _async_ensure_power_on(self) -> bool:
+        """确保设备开机。已开机直接返回 True。
+
+        实测 X50S 关机时会静默忽略模式/风速命令，必须先开机；
+        开机后固件会自己改几次风速，所以需要等初始化完成。
+        """
+        if self.status.get("power"):
+            return True
+
+        if not await self.async_control("on"):
+            return False
+
+        self.status["power"] = True
+        await asyncio.sleep(POWER_ON_SETTLE)
+        return True
+
+    async def async_set_mode(self, mode: str) -> bool:
+        """设置运行模式，关机时自动先开机。"""
+        if mode not in PRESET_MODES:
+            _LOGGER.warning("未知模式: %s", mode)
+            return False
+        if not await self._async_ensure_power_on():
+            return False
+
+        self.status["mode"] = mode
+        return await self.async_control(mode)
+
+    async def async_set_speed(self, speed: int) -> bool:
+        """设置风速档位，关机时自动先开机。"""
+        speed = max(1, min(self.speed_count, int(speed)))
+        if not await self._async_ensure_power_on():
+            return False
+
+        self.status["speed"] = speed
+        return await self.async_control(f"speed_{speed}")
 
     async def async_query(self) -> bool:
         return await self.async_control("query")

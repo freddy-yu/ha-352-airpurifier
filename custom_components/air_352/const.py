@@ -26,6 +26,10 @@ DEVICE_TYPE_G30 = 0x04
 HEARTBEAT_INTERVAL = 5
 QUERY_INTERVAL = 60
 
+# 设备开机后有一段初始化（风速会自己跳几下），
+# 紧跟的命令可能被覆盖，需等待稳定。
+POWER_ON_SETTLE = 0.8
+
 # 每个模型的协议参数
 #   protocol     : 内层帧格式
 #   device_type  : 外层头 DEVICE_TYPE

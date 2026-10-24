@@ -16,7 +16,7 @@ from .hub import Air352Hub
 _LOGGER = logging.getLogger(__name__)
 
 SHARED_KEY = "_shared"
-PLATFORMS = ["fan", "sensor", "light"]
+PLATFORMS = ["fan", "sensor", "light", "select"]
 
 
 class SharedUdpProtocol(asyncio.DatagramProtocol):

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 
 from .const import DOMAIN, PRESET_MODES
@@ -92,29 +90,17 @@ class Air352FanEntity(FanEntity):
 
         count = self._hub.speed_count
         speed = max(1, min(count, round(percentage / 100 * count)))
-        was_on = bool(self._hub.status.get("power"))
-        self._hub.status["power"] = True
-        self._hub.status["speed"] = speed
-        self.async_write_ha_state()
 
-        if not was_on:
-            await self._hub.async_control("on")
-            # 同上：等设备开机初始化稳定后再调风速
-            await asyncio.sleep(0.8)
-        await self._hub.async_control(f"speed_{speed}")
+        # 不要在这里预先把 status["power"] 改成 True：
+        # hub 需要用它判断设备是否真的关机。先改会导致跳过开机命令，
+        # 而设备关机时会静默忽略风速命令。
+        await self._hub.async_set_speed(speed)
+        self.async_write_ha_state()
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         if preset_mode not in PRESET_MODES:
             return
-        # 设备关机时模式命令会被忽略，必须先开机
-        was_on = bool(self._hub.status.get("power"))
-        self._hub.status["power"] = True
-        self._hub.status["mode"] = preset_mode
-        self.async_write_ha_state()
 
-        if not was_on:
-            await self._hub.async_control("on")
-            # 设备开机后有一段初始化（风速会自己跳几下），
-            # 紧跟的命令可能被覆盖，留出稳定时间。
-            await asyncio.sleep(0.8)
-        await self._hub.async_control(preset_mode)
+        # 同上：不在调用前乐观改状态，交给 hub 判断是否需要先开机
+        await self._hub.async_set_mode(preset_mode)
+        self.async_write_ha_state()

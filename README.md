@@ -20,6 +20,8 @@
 > 5. **包名从 `air_352_x83` 改为 `air_352`** —— 原名字带型号后缀，容易误导（本集成支持多型号）。
 > 6. 新增离线测试套件（`tests/`）和只读局域网诊断脚本。
 > 7. 补充 `F0FE6B*` 的 DHCP 自动发现前缀（实测 X50S 的 MAC 前缀）。
+> 8. **新增 `select` 实体选运行模式** —— HA 风扇卡片默认不显示模式下拉框，
+>    单靠 `preset_mode` 容易让人误以为不支持模式。
 >
 > 变更细节见 [`docs/X50S-协议逆向笔记.md`](docs/X50S-协议逆向笔记.md) 第 12 节「实机验证记录」。
 
@@ -114,17 +116,31 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 ## 实体
 
 - `fan`：主控（开关、风速、预设模式）
+- `select`：**运行模式选择**（自动/睡眠/极速/手动）—— 推荐用这个选模式
 - `light`：屏幕灯（**仅设备开机时可用**，见下）
 - `sensor.pm25`、`sensor.speed`、`sensor.cumulative_purification`、`sensor.filter_type`
 - X50S 实测没有温湿度/CO₂ 传感器，因此不创建这些实体
 - `sensor.total_purification` 为诊断实体（X50S 上恒为 0）
 
+### 为什么另外提供 select 实体？
+
+`fan` 实体本身支持 `preset_mode`（自动/睡眠/极速/手动），这是标准做法。
+但 Home Assistant 的**风扇卡片（tile card）默认不渲染模式下拉框**，
+需要在卡片上手动添加「Preset modes」功能才看得到，很容易让人误以为不支持模式。
+
+所以额外提供一个 `select` 实体，名为「运行模式」：任何卡片、自动化、
+语音助手都能直接选用。两个入口共享同一状态，用哪个都行。
+
+> 如果你更想用风扇卡片上的模式下拉框：编辑卡片 → 添加功能 →
+> 选「Preset modes」（预设模式）即可。
+
 ### 关机状态下的行为
 
 实测 X50S：
 
-- **关机时灯光、模式、风速命令全部被忽略**，设备无任何响应
+- **关机时灯光命令被忽略**，设备无任何响应
 - 关机会把灯光状态重置为「开」，此时上报的 `light` 值无参考意义
+- **模式 / 风速命令同样会被忽略，但集成会自动先开机再发**
 
 所以：
 
@@ -144,6 +160,7 @@ X50 与 X50S 在协议层是同一个设备类型（`0x03`），区别在内层�
 python tests/test_protocol.py   # 帧构造/CRC/解析
 python tests/test_hub.py        # 认证码学习/状态合并
 python tests/test_entity.py     # fan/light 实体层命令序列
+python tests/test_select.py     # select 实体 + hub 模式/风速接口
 ```
 
 真机验证（需要设备在网）：
@@ -152,6 +169,7 @@ python tests/test_entity.py     # fan/light 实体层命令序列
 python tests/probe_device.py 192.168.0.29   # 只读诊断
 python tests/probe_verify.py                # 逐条命令查询确认
 python tests/test_live_entity.py            # 实体层端到端
+python tests/test_live_select.py            # 模式选择端到端
 ```
 
 ## 已知限制

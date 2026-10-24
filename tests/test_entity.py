@@ -137,6 +137,27 @@ class RecordingHub:
         self.calls.append(action)
         return True
 
+    async def _async_ensure_power_on(self):
+        if self.status.get("power"):
+            return True
+        self.calls.append("on")
+        self.status["power"] = True
+        return True
+
+    async def async_set_mode(self, mode):
+        if mode not in const.PRESET_MODES:
+            return False
+        await self._async_ensure_power_on()
+        self.calls.append(mode)
+        self.status["mode"] = mode
+        return True
+
+    async def async_set_speed(self, speed):
+        await self._async_ensure_power_on()
+        self.calls.append(f"speed_{speed}")
+        self.status["speed"] = speed
+        return True
+
     def register_callback(self, cb):
         pass
 
