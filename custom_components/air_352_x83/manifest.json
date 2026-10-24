@@ -1,9 +1,9 @@
 {
   "domain": "air_352_x83",
-  "name": "352 Air Purifier X83",
-  "version": "1.0.0",
-  "documentation": "https://github.com/aexyun/air_352_x83",
-  "issue_tracker": "https://github.com/aexyun/air_352_x83/issues",
+  "name": "352 Air Purifier",
+  "version": "1.1.0",
+  "documentation": "https://github.com/aexyun/ha-352-airpurifier",
+  "issue_tracker": "https://github.com/aexyun/ha-352-airpurifier/issues",
   "dependencies": [],
   "codeowners": ["@aexyun"],
   "config_flow": true,
