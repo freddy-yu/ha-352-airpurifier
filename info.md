@@ -36,7 +36,7 @@
 
 ## 安装
 
-**HACS**：自定义存储库添加 `https://github.com/freddy-yu/ha-352-airpurifier`，
+**HACS**：自定义存储库添加 `https://github.com/freddy-yu/ha-352-x50s-airpurifier`，
 类别选「集成」，搜索 `352 X50S` 安装，重启 HA。
 
 **手动**：把 `custom_components/air_352_x50s` 复制到 HA 配置目录的 `custom_components/` 下，重启。

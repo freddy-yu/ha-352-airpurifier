@@ -2,8 +2,8 @@
   "domain": "air_352_x50s",
   "name": "352 X50S Air Purifier",
   "version": "1.3.1",
-  "documentation": "https://github.com/freddy-yu/ha-352-airpurifier",
-  "issue_tracker": "https://github.com/freddy-yu/ha-352-airpurifier/issues",
+  "documentation": "https://github.com/freddy-yu/ha-352-x50s-airpurifier",
+  "issue_tracker": "https://github.com/freddy-yu/ha-352-x50s-airpurifier/issues",
   "dependencies": [],
   "codeowners": [
     "@freddy-yu"
